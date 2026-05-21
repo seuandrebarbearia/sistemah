@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hamburgueria</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- 🔥 HEADER -->
+  <header>
+    <div class="logo-area">
+      <h1>🍔 Seu André Burguer</h1>
+      <a href="admin.html" class="admin-link">admin</a>
+    </div>
+
+    <nav class="nav-menu">
+      <button type="button" onclick="scrollPara('lanches')">🍔 Lanches</button>
+      <button type="button" onclick="scrollPara('bebidas')">🥤 Bebidas</button>
+    </nav>
+
+    <button type="button" id="cart-btn" class="cart-btn">🛒 Carrinho</button>
+  </header>
+
+  <!-- 🔥 CONTEÚDO -->
+  <main>
+    <section id="menu">
+      <div id="lista-produtos"></div>
+    </section>
+  </main>
+
+  <!-- 🛒 MODAL CARRINHO -->
+  <div id="cart-modal" class="hidden">
+    <div class="cart-content">
+      <h2>Seu Pedido</h2>
+
+      <div id="cart-items"></div>
+
+      <p id="total">Total: R$ 0</p>
+
+      <button type="button" id="finalizar">Finalizar Pedido</button>
+      <button type="button" id="fechar">Fechar</button>
+    </div>
+  </div>
+
+  <!-- 📦 FINALIZAR PEDIDO -->
+  <div id="checkout-modal" class="hidden">
+    <div class="cart-content">
+
+      <h2>Finalizar Pedido</h2>
+
+      <div id="resumo-pedido"></div>
+
+      <p>Taxa de entrega: R$ 7.00</p>
+      <p id="total-final">Total: R$ 0</p>
+
+      <input type="text" id="nome-cliente" placeholder="Seu nome">
+      <input type="text" id="telefone" placeholder="Telefone">
+      <input type="text" id="endereco" placeholder="Endereço">
+      <input type="text" id="numero" placeholder="Número">
+      <input type="text" id="complemento" placeholder="Complemento">
+      <input type="text" id="bairro" placeholder="Bairro">
+
+      <button type="button" id="confirmar">Confirmar Pedido</button>
+      <button type="button" id="fechar-checkout">Fechar</button>
+
+    </div>
+  </div>
+
+  <!-- 🍔 PERSONALIZAÇÃO -->
+  <div id="opcao-modal" class="hidden">
+    <div class="opcao-content">
+
+      <h2>Personalizar Lanche</h2>
+      <p id="nome-lanche"></p>
+      <label><span>Completo</span><input type="checkbox" id="completo"></label>
+      <label><span>Sem milho</span><input type="checkbox" id="sem-milho"></label>
+      <label><span>Sem ervilha</span><input type="checkbox" id="sem-ervilha"></label>
+      <label><span>Sem maionese</span><input type="checkbox" id="sem-maionese"></label>
+      <label><span>Sem ketchup</span><input type="checkbox" id="sem-ketchup"></label>
+      <label><span>Sem cebola</span><input type="checkbox" id="sem-cebola"></label>
+      <label><span>Sem tomate</span><input type="checkbox" id="sem-tomate"></label>
+      <label><span>Sem alface</span><input type="checkbox" id="sem-alface"></label>
+
+      <div class="botoes-opcao">
+        <button type="button" id="confirmar-opcao">Adicionar ao Carrinho</button>
+        <button type="button" id="fechar-opcao">Cancelar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 🥤 BEBIDA -->
+  <div id="bebida-modal" class="hidden">
+    <div class="opcao-content">
+
+      <h2>Escolher quantidade</h2>
+      <p id="nome-bebida"></p>
+
+      <div class="opcoes-bebida">
+        <div class="opcao-qtd" data-qtd="1">1 unidade</div>
+        <div class="opcao-qtd" data-qtd="2">2 unidades</div>
+        <div class="opcao-qtd" data-qtd="3">3 unidades</div>
+      </div>
+
+      <div class="botoes-opcao">
+        <button type="button" id="confirmar-bebida">Adicionar</button>
+        <button type="button" id="fechar-bebida">Cancelar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
