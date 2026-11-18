@@ -1,44 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login Admin</title>
   <link rel="stylesheet" href="style.css">
+  <script src="login.js" defer></script>
 </head>
-
 <body>
-
   <main class="container">
-    <h2>🔐 Acesso Admin</h2>
-
-    <input type="password" id="senha" placeholder="Digite a senha">
-
-    <button type="button" onclick="fazerLogin()">Entrar</button>
+    <h2>Acesso Admin</h2>
+    <form id="login-form">
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" autocomplete="current-password" required maxlength="256">
+      <button type="submit">Entrar</button>
+    </form>
+    <p id="login-status" role="status">O acesso depende da validação do servidor.</p>
+    <a href="index.html">Voltar ao cardápio</a>
   </main>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-  <script>
-  function md5(string) {
-    return CryptoJS.MD5(string).toString();
-  }
-
-  function fazerLogin() {
-    const senhaDigitada = document.getElementById("senha").value.trim();
-    const senhaHash = md5(senhaDigitada);
-
-    const senhaCorreta = "19984dcaea13176bbb694f62ba6b5b35";
-
-    if (senhaHash === senhaCorreta) {
-      localStorage.setItem("logado", "true");
-      window.location.href = "admin.html";
-    } else {
-      alert("Senha incorreta!");
-    }
-  }
-</script>
-
 </body>
 </html>
