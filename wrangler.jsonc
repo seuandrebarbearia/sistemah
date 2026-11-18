@@ -1,0 +1,9 @@
+{
+  "name": "sistemah",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-18",
+  "build": { "command": "node build-static.cjs" },
+  "assets": { "directory": "./dist", "binding": "ASSETS", "run_worker_first": true, "html_handling": "none" },
+  "durable_objects": { "bindings": [{ "name": "CATALOG", "class_name": "Catalog" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Catalog"] }]
+}
