@@ -1,140 +1,67 @@
-// =========================
-// 🔐 VERIFICAR LOGIN
-// =========================
-if (localStorage.getItem("logado") !== "true") {
-  window.location.href = "login.html";
+async function api(path, options = {}) {
+  const response = await fetch(path, options);
+  if (response.status === 401) { location.replace('login.html'); throw new Error('Entre para continuar.'); }
+  if (!response.ok) { const data = await response.json(); throw new Error(data.error || 'Operação não concluída.'); }
+  return response.json();
 }
-
-// =========================
-// 🔙 VOLTAR PARA A PÁGINA INICIAL
-// =========================
-function voltarIndex() {
-  window.location.href = "index.html";
+function voltarIndex() { location.href = 'index.html'; }
+async function logout() {
+  try { await api('/api/logout', { method: 'POST' }); location.replace('index.html'); }
+  catch (error) { alert(error.message); }
 }
-
-// =========================
-// 🔐 SAIR DO ADMIN
-// =========================
-function logout() {
-  localStorage.removeItem("logado");
-  window.location.href = "index.html";
-}
-
-// =========================
-// 🔹 PEGAR PRODUTOS
-// =========================
-function pegarProdutos() {
-  return JSON.parse(localStorage.getItem("produtos")) || [];
-}
-
-// =========================
-// 🔹 SALVAR PRODUTOS
-// =========================
-function salvarProdutos(produtos) {
-  localStorage.setItem("produtos", JSON.stringify(produtos));
-}
-
-// =========================
-// 🔥 ADICIONAR PRODUTO
-// =========================
-function adicionar() {
-  const nome = document.getElementById("nome").value.trim();
-  const descricao = document.getElementById("descricao").value.trim();
-  const preco = Number(document.getElementById("preco").value);
-  const categoria = document.getElementById("categoria").value;
-  const imagemInput = document.getElementById("imagem");
-
-  if (!nome || !descricao || !preco || !categoria) {
-    alert("Preencha nome, descrição, preço e categoria.");
-    return;
-  }
-
-  const produtos = pegarProdutos();
-
-  const novoProduto = {
-    id: Date.now(),
-    nome: nome,
-    descricao: descricao,
-    preco: preco,
-    categoria: categoria,
-    imagem: ""
-  };
-
-  const arquivoImagem = imagemInput.files[0];
-
-  if (arquivoImagem) {
-    const reader = new FileReader();
-
-    reader.onload = function () {
-      novoProduto.imagem = reader.result;
-      produtos.push(novoProduto);
-      salvarProdutos(produtos);
-      limparFormulario();
-      renderAdmin();
-      alert("Produto adicionado com sucesso!");
-    };
-
-    reader.readAsDataURL(arquivoImagem);
-  } else {
-    produtos.push(novoProduto);
-    salvarProdutos(produtos);
-    limparFormulario();
-    renderAdmin();
-    alert("Produto adicionado com sucesso!");
+async function renderAdmin() {
+  const products = await api('/api/products');
+  const list = document.getElementById('lista-admin');
+  list.replaceChildren();
+  if (!products.length) { list.textContent = 'Nenhum produto cadastrado.'; return; }
+  for (const product of products) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    if (safeImage(product.imagem)) {
+      const image = document.createElement('img');
+      image.src = safeImage(product.imagem); image.alt = product.nome; image.className = 'img-produto'; card.append(image);
+    }
+    for (const [tag, text] of [['h3', product.nome], ['p', product.descricao], ['p', 'R$ ' + Number(product.preco).toFixed(2)], ['p', product.categoria]]) {
+      const field = document.createElement(tag); field.textContent = text; card.append(field);
+    }
+    const remove = document.createElement('button');
+    remove.type = 'button'; remove.textContent = 'Excluir';
+    remove.addEventListener('click', async () => {
+      try { await api('/api/products/' + encodeURIComponent(product.id), { method: 'DELETE' }); await renderAdmin(); }
+      catch (error) { alert(error.message); }
+    });
+    card.append(remove); list.append(card);
   }
 }
-
-// =========================
-// 🔥 LIMPAR FORMULÁRIO
-// =========================
-function limparFormulario() {
-  document.getElementById("nome").value = "";
-  document.getElementById("descricao").value = "";
-  document.getElementById("preco").value = "";
-  document.getElementById("categoria").value = "";
-  document.getElementById("imagem").value = "";
-}
-
-// =========================
-// 🔥 MOSTRAR PRODUTOS NO ADMIN
-// =========================
-function renderAdmin() {
-  const lista = document.getElementById("lista-admin");
-
-  if (!lista) return;
-
-  const produtos = pegarProdutos();
-
-  if (produtos.length === 0) {
-    lista.innerHTML = "<p>Nenhum produto cadastrado.</p>";
-    return;
+async function adicionar() {
+  const form = document.getElementById('product-form');
+  if (!form.reportValidity()) return;
+  const file = document.getElementById('imagem').files[0];
+  if (file && (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 1000000)) {
+    alert('Escolha uma imagem PNG, JPEG ou WebP de até 1 MB.'); return;
   }
-
-  lista.innerHTML = produtos.map(produto => `
-    <div class="card">
-      <img src="${produto.imagem || 'https://via.placeholder.com/150'}" class="img-produto" alt="${produto.nome}">
-      <h3>${produto.nome}</h3>
-      <p>${produto.descricao}</p>
-      <p><strong>R$ ${Number(produto.preco).toFixed(2)}</strong></p>
-      <p>${produto.categoria}</p>
-      <button type="button" onclick="excluirProduto(${produto.id})">Excluir</button>
-    </div>
-  `).join("");
+  const button = form.querySelector('button');
+  button.disabled = true;
+  try {
+    const imagem = file ? await new Promise((resolve, reject) => {
+      const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(file);
+    }) : '';
+    await api('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      nome: document.getElementById('nome').value.trim(), descricao: document.getElementById('descricao').value.trim(),
+      preco: Number(document.getElementById('preco').value), categoria: document.getElementById('categoria').value, imagem
+    }) });
+    form.reset(); await renderAdmin();
+  } catch (error) { alert(error.message); }
+  finally { button.disabled = false; }
 }
-
-// =========================
-// 🔥 EXCLUIR PRODUTO
-// =========================
-function excluirProduto(id) {
-  const produtos = pegarProdutos().filter(produto => produto.id !== id);
-
-  salvarProdutos(produtos);
-  renderAdmin();
-}
-
-// =========================
-// 🔹 INICIAR
-// =========================
-document.addEventListener("DOMContentLoaded", () => {
-  renderAdmin();
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await api('/api/session');
+    document.getElementById('admin-content').hidden = false;
+    document.getElementById('admin-status').hidden = true;
+    await renderAdmin();
+  } catch (error) { document.getElementById('admin-status').textContent = 'Acesso indisponível. Use o servidor configurado para administrar o cardápio.'; }
+  document.getElementById('logout').addEventListener('click', logout);
+  document.getElementById('back').addEventListener('click', voltarIndex);
+  document.getElementById('product-form').addEventListener('submit', event => { event.preventDefault(); adicionar(); });
 });

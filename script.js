@@ -7,8 +7,19 @@ const taxaEntrega = 7;
 // =========================
 // 🔹 PEGAR PRODUTOS
 // =========================
-function pegarProdutos() {
-  return JSON.parse(localStorage.getItem("produtos")) || [];
+let catalogo = [];
+function pegarProdutos() { return catalogo; }
+async function carregarProdutos() {
+  try {
+    const response = await fetch('/api/products');
+    if (!response.ok) throw new Error('Catálogo indisponível.');
+    const products = await response.json();
+    if (!Array.isArray(products)) throw new Error('Catálogo inválido.');
+    catalogo = products;
+    renderProdutos();
+  } catch {
+    document.getElementById('lista-produtos').textContent = 'Cardápio indisponível. Tente novamente mais tarde.';
+  }
 }
 
 // =========================
@@ -35,11 +46,11 @@ function scrollPara(id) {
 function cardProduto(p) {
   return `
     <div class="card">
-      <img src="${p.imagem || 'https://via.placeholder.com/150'}" class="img-produto" alt="${p.nome}">
-      <h3>${p.nome}</h3>
-      <p>${p.descricao || ""}</p>
+      <img src="${safeImage(p.imagem)}" class="img-produto" alt="${escapeHTML(p.nome)}">
+      <h3>${escapeHTML(p.nome)}</h3>
+      <p>${escapeHTML(p.descricao || "")}</p>
       <p><strong>R$ ${Number(p.preco).toFixed(2)}</strong></p>
-      <button type="button" onclick="abrirOpcoes(${p.id})">Adicionar</button>
+      <button type="button" data-product-id="${escapeHTML(p.id)}">Adicionar</button>
     </div>
   `;
 }
@@ -225,14 +236,14 @@ function atualizarCarrinho() {
     const quantidade = item.quantidade || 1;
     const subtotal = Number(item.preco) * Number(quantidade);
     const opcoes = item.opcoes && item.opcoes.length > 0
-      ? `<small>${item.opcoes.join(", ")}</small>`
+      ? `<small>${item.opcoes.map(escapeHTML).join(", ")}</small>`
       : "";
 
     return `
       <div class="item-carrinho">
         <p>
-          <span>${quantidade}x ${item.nome}</span>
-          <button type="button" onclick="removerItem(${index})">❌</button>
+          <span>${quantidade}x ${escapeHTML(item.nome)}</span>
+          <button type="button" data-remove-index="${index}">❌</button>
         </p>
         ${opcoes}
         <p><strong>R$ ${subtotal.toFixed(2)}</strong></p>
@@ -270,12 +281,12 @@ function abrirCheckout() {
   resumo.innerHTML = carrinho.map(item => {
     const quantidade = item.quantidade || 1;
     const opcoes = item.opcoes && item.opcoes.length > 0
-      ? ` (${item.opcoes.join(", ")})`
+      ? ` (${item.opcoes.map(escapeHTML).join(", ")})`
       : "";
 
     return `
       <p>
-        <span>${quantidade}x ${item.nome}${opcoes}</span>
+        <span>${quantidade}x ${escapeHTML(item.nome)}${opcoes}</span>
         <strong>R$ ${(Number(item.preco) * Number(quantidade)).toFixed(2)}</strong>
       </p>
     `;
@@ -333,7 +344,7 @@ function confirmarPedido() {
 
   const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
 
-  window.open(url, "_blank");
+  window.open(url, "_blank", "noopener,noreferrer");
 
   carrinho = [];
   atualizarCarrinho();
@@ -344,7 +355,16 @@ function confirmarPedido() {
 // 🔹 INICIAR BOTÕES
 // =========================
 document.addEventListener("DOMContentLoaded", () => {
-  renderProdutos();
+  carregarProdutos();
+  document.querySelectorAll('[data-scroll]').forEach(button => button.addEventListener('click', () => scrollPara(button.dataset.scroll)));
+  document.getElementById('lista-produtos').addEventListener('click', event => {
+    const button = event.target.closest('[data-product-id]');
+    if (button) abrirOpcoes(button.dataset.productId);
+  });
+  document.getElementById('cart-items').addEventListener('click', event => {
+    const button = event.target.closest('[data-remove-index]');
+    if (button) removerItem(Number(button.dataset.removeIndex));
+  });
 
   document.getElementById("cart-btn")?.addEventListener("click", abrirCarrinho);
   document.getElementById("fechar")?.addEventListener("click", fecharCarrinho);

@@ -10,34 +10,36 @@
 
 <body>
 
+  <p id="admin-status" role="status">Verificando acesso…</p>
+<div id="admin-content" hidden>
   <header>
-    <button type="button" onclick="logout()">Sair</button>
+    <button type="button" id="logout">Sair</button>
 
     <h1>⚙️ Painel Admin</h1>
 
-    <button type="button" onclick="voltarIndex()">Voltar</button>
+    <button type="button" id="back">Voltar</button>
   </header>
 
   <main class="container">
 
     <!-- PRODUTOS -->
-    <section class="box-admin">
+    <form id="product-form" class="box-admin">
       <h2>Adicionar Produto</h2>
 
-      <input type="text" id="nome" placeholder="Nome do produto">
-      <input type="text" id="descricao" placeholder="Descrição">
-      <input type="number" id="preco" placeholder="Preço" step="0.01" min="0">
+      <input type="text" id="nome" required maxlength="120" placeholder="Nome do produto">
+      <input type="text" id="descricao" required maxlength="1000" placeholder="Descrição">
+      <input type="number" id="preco" placeholder="Preço" step="0.01" min="0.01" max="100000" required>
 
-      <select id="categoria">
+      <select id="categoria" required>
         <option value="">Selecione uma categoria</option>
         <option value="lanche">🍔 Lanche</option>
         <option value="bebida">🥤 Bebida</option>
       </select>
 
-      <input type="file" id="imagem" accept="image/*">
+      <input type="file" id="imagem" accept="image/png,image/jpeg,image/webp">
 
-      <button type="button" onclick="adicionar()">Adicionar</button>
-    </section>
+      <button type="submit" id="add-product">Adicionar</button>
+    </form>
 
     <!-- LISTA DE PRODUTOS -->
     <section class="box-admin">
@@ -47,6 +49,8 @@
 
   </main>
 
+</div>
+  <script src="safe.js"></script>
   <script src="admin.js"></script>
 
 </body>
