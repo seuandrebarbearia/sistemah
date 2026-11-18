@@ -66,3 +66,14 @@ test('startup fails closed without server credentials or HTTPS', () => {
   assert.throws(() => createApp({ publicOrigin: 'https://cardapio.example' }), /ADMIN_PASSWORD_HASH/);
   assert.throws(() => createApp({ passwordHash, publicOrigin: 'http://cardapio.example' }), /HTTPS/);
 });
+test('static catalogue preserves valid legacy products while escaping injected fields', () => {
+  const context = vm.createContext({ document: { addEventListener() {} } });
+  vm.runInContext(readFileSync(new URL('./safe.js', import.meta.url), 'utf8'), context);
+  vm.runInContext(readFileSync(new URL('./script.js', import.meta.url), 'utf8'), context);
+  const values = [{ id: 1, nome: '<img src=x onerror=alert(1)>', descricao: 'Legado', preco: 12, categoria: 'lanche', imagem: 'javascript:alert(1)' }, { id: 2, nome: 'Inválido', descricao: '', preco: -1, categoria: 'lanche' }];
+  context.saved = JSON.stringify(values);
+  const markup = vm.runInContext('const legacy = lerCatalogoLegado({ getItem() { return saved; } }); if (legacy.length !== 1 || legacy[0].id !== "1") throw new Error("Legacy lost"); cardProduto(legacy[0])', context);
+  assert.ok(!markup.includes('javascript:'));
+  assert.ok(!markup.includes('<img src=x'));
+  assert.ok(markup.includes('&lt;img'));
+});

@@ -9,6 +9,19 @@ const taxaEntrega = 7;
 // =========================
 let catalogo = [];
 function pegarProdutos() { return catalogo; }
+function lerCatalogoLegado(storage) {
+  try {
+    const items = JSON.parse(storage.getItem('produtos') || '[]');
+    if (!Array.isArray(items)) return [];
+    return items.slice(0, 500).filter(item => item &&
+      (typeof item.id === 'string' || Number.isSafeInteger(item.id)) &&
+      typeof item.nome === 'string' && item.nome.length <= 120 &&
+      typeof item.descricao === 'string' && item.descricao.length <= 1000 &&
+      Number.isFinite(Number(item.preco)) && Number(item.preco) > 0 &&
+      ['lanche', 'bebida'].includes(item.categoria)
+    ).map(item => ({ ...item, id: String(item.id), preco: Number(item.preco), imagem: safeImage(item.imagem) }));
+  } catch { return []; }
+}
 async function carregarProdutos() {
   try {
     const response = await fetch('/api/products');
@@ -18,7 +31,13 @@ async function carregarProdutos() {
     catalogo = products;
     renderProdutos();
   } catch {
-    document.getElementById('lista-produtos').textContent = 'Cardápio indisponível. Tente novamente mais tarde.';
+    // Preserve the old device-only catalogue while the secure backend is
+    // being configured. It does not authorize any administrative operation.
+    try { catalogo = lerCatalogoLegado(window.localStorage); } catch { catalogo = []; }
+    renderProdutos();
+    const notice = document.createElement('p');
+    notice.textContent = 'Catálogo de demonstração deste aparelho. A administração depende do servidor configurado. Confirme preços e disponibilidade com a loja.';
+    document.getElementById('lista-produtos').prepend(notice);
   }
 }
 

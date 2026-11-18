@@ -14,6 +14,8 @@ Requer Node.js 22 ou superior, HTTPS e uma única instância do servidor. GitHub
 
 Os produtos antigos existiam somente no navegador que os cadastrou. Eles não são importados automaticamente: confira e recadastre os itens pelo painel autenticado. Não há catálogo padrão inventado. Configure também o número real do WhatsApp em `script.js`; o projeto original contém um número demonstrativo.
 
+Enquanto o backend não estiver configurado, a versão estática mantém somente a leitura do catálogo legado deste aparelho, com validação dos registros e escape dos campos. Exibe um aviso de demonstração e não permite cadastrar ou excluir produtos pelo antigo login. O cache antigo não é apagado. Isso permite fechar a entrada administrativa insegura sem descartar o catálogo existente.
+
 ## Proteções e limites
 
 - Validação de sessão no servidor em cada alteração e antes de servir `admin.html`.
