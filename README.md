@@ -26,3 +26,14 @@ Enquanto o backend não estiver configurado, a versão estática mantém somente
 - Pedido pelo WhatsApp é uma solicitação: a loja deve conferir valores e disponibilidade antes de aceitar. O navegador não é uma autoridade para preços ou pagamento.
 
 As verificações cobrem o código desta alteração. Não validam a configuração efetiva da hospedagem nem constituem uma auditoria completa.
+
+## Hospedagem no Cloudflare Workers
+
+`wrangler.jsonc` publica `worker.js`, oito arquivos de interface e um Durable Object SQLite. O catálogo e as sessões ficam no armazenamento persistente do objeto `Catalog`, com apenas uma instância lógica (`main`). O catálogo original no navegador não é apagado ou importado automaticamente; revise os produtos antes de recadastrar na nova origem.
+
+1. Conecte apenas o repositório `sistemah` à integração Cloudflare Workers and Pages e publique com `npx wrangler deploy`. O comando de empacotamento está no arquivo de configuração.
+2. Nas configurações do Worker, adicione uma variável do tipo **Secret** chamada `ADMIN_PASSWORD`. O titular deve digitar e salvar uma senha nova de 12 a 256 caracteres diretamente no painel do Cloudflare. Nunca use uma senha de teste, a senha antiga exposta, uma variável pública ou um commit no GitHub. Sem esse segredo válido, o login recusa acesso.
+3. Abra o endereço HTTPS do Worker, entre pelo painel e teste o cadastro de produtos. O código usa cookies HttpOnly/Secure/SameSite=Strict e confere a sessão a cada alteração. Sair, expirar ou substituir o segredo invalida sessões. A instância do objeto pode reiniciar sem perder o catálogo e as sessões válidas.
+4. O segredo é gerenciado pelo Cloudflare. O código faz comparação em tempo constante, limita tentativas de login por IP e globalmente por 15 minutos e não registra a senha em logs. As rotas públicas não expõem o segredo, código de servidor, testes ou arquivos de configuração. Não habilite uma rota de fallback que ignore o Worker para servir `admin.html`.
+
+A opção Node.js descrita acima continua disponível separadamente e usa `ADMIN_PASSWORD_HASH`. A implantação Cloudflare utiliza `ADMIN_PASSWORD` como segredo privado, não o hash da opção Node.

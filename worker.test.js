@@ -9,10 +9,11 @@ test('Cloudflare adapter enforces server login and persists catalog and session 
   const secret = { ADMIN_PASSWORD:'Only-for-test-39-never-deployed' };
   let object = new Catalog(ctx, secret);
   let assetsCalled = 0;
-  const env = { CATALOG:{idFromName:x=>x,get:()=>object}, ASSETS:{fetch:async()=>{ assetsCalled++; return new Response('static asset'); }} };
+  const env = { CATALOG:{idFromName:x=>x,get:()=>object}, ASSETS:{fetch:async req=>{ assetsCalled++; return new Response('static asset', {status:new URL(req.url).pathname.endsWith('.html')?200:404}); }} };
   const request = (path,method='GET',data,cookie,origin='https://sistemah.example') => worker.fetch(new Request('https://sistemah.example'+path,{method,headers:{Origin:origin,'Content-Type':'application/json', 'CF-Connecting-IP':'192.0.2.1',...(cookie?{Cookie:cookie}:{})},...(data===undefined?{}:{body:JSON.stringify(data)})}), env);
   assert.equal((await request('/admin.html')).status,303);
   assert.equal(assetsCalled,0);
+  assert.equal((await request('/')).status,200);
   assert.equal((await request('/api/session','GET',undefined,'logado=true')).status,401);
   const item={nome:'Produto teste',descricao:'Teste',preco:10,categoria:'lanche'};
   assert.equal((await request('/api/products','POST',item,'logado=true')).status,401);

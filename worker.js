@@ -120,7 +120,9 @@ export default {
         const check = new Request(new URL('/api/session',url), { headers: req.headers });
         if (!(await catalog().fetch(check)).ok) return secure(new Response(null,{status:303,headers:{Location:'/login.html'}}));
       }
-      return secure(await env.ASSETS.fetch(req));
+      // With html_handling=none, the assets binding needs the exact file path.
+      const assetRequest = url.pathname === '/' ? new Request(new URL('/index.html', url), req) : req;
+      return secure(await env.ASSETS.fetch(assetRequest));
     } catch { return secure(json(503,{error:'Serviço temporariamente indisponível.'})); }
   }
 };
